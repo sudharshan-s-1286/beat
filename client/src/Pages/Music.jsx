@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { Button, Input, Spin, message, Badge } from 'antd';
-import { SearchOutlined, InfoCircleOutlined, PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons';
+import { Button, Input, Spin, message, Badge, Select } from 'antd';
+import { SearchOutlined, InfoCircleOutlined, PlayCircleFilled, PauseCircleFilled } from '@ant-design/icons';
+import { PlayerContext } from '../Context/PlayerContext';
+
+const { Option } = Select;
 
 const Music = () => {
     const [searchKey, setSearchKey] = useState('');
     const [tracks, setTracks] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [playingTrack, setPlayingTrack] = useState(null);
+    const [sortBy, setSortBy] = useState('popularity_total'); // Default sort
+
+    // Global Player Context
+    const { playTrack, currentTrack, isPlaying, togglePlay } = useContext(PlayerContext);
 
     // Search Handler (Jamendo)
     const searchTracks = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
         if (!searchKey.trim()) {
             message.warning("Please enter a song name");
@@ -19,17 +25,19 @@ const Music = () => {
         }
 
         setLoading(true);
-        setPlayingTrack(null); // Stop playing when new search
-        console.log("Searching for:", searchKey);
+        console.log("Searching for:", searchKey, "Sort:", sortBy);
 
         try {
             // Call our backend proxy
             const { data } = await axios.get('http://localhost:5000/api/jamendo/search', {
-                params: { q: searchKey }
+                params: {
+                    q: searchKey,
+                    order: sortBy
+                }
             });
 
             console.log("Search Results:", data.results);
-            setTracks(data.results);
+            setTracks(data.results || []);
 
             if (!data.results || data.results.length === 0) {
                 message.info("No tracks found");
@@ -42,8 +50,24 @@ const Music = () => {
         }
     };
 
+    // Triggered when sort option changes
+    const handleSortChange = (value) => {
+        setSortBy(value);
+        // If we have a search key, re-search immediately
+        if (searchKey.trim()) {
+            // Check if we can trigger search easily. 
+            // We can't call searchTracks(e) easily without an event, but we can extract logic.
+            // For now, let's just update state, user might need to hit search again or we use useEffect.
+            // Better UX: Trigger search if searchKey exists.
+            // But state update is async. Let's rely on user clicking search or handle via useEffect if desired.
+            // Simpler: Just set state, and user hits search. 
+            // Or:
+            setTimeout(() => document.querySelector('.search-btn')?.click(), 100);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-neutral-900 text-white p-4 md:p-10 font-sans">
+        <div className="min-h-screen bg-neutral-900 text-white p-4 md:p-10 font-sans pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className="mb-10 text-center">
                     <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500 mb-4 animate-pulse">
@@ -52,8 +76,8 @@ const Music = () => {
                     <p className="text-gray-400 text-lg">Stream full songs powered by Jamendo</p>
                 </header>
 
-                {/* Search Bar */}
-                <div className="flex justify-center mb-12">
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col md:flex-row justify-center gap-4 mb-12 items-center">
                     <form onSubmit={searchTracks} className="flex gap-4 w-full max-w-xl relative">
                         <Input
                             size="large"
@@ -70,15 +94,33 @@ const Music = () => {
                             shape="circle"
                             onClick={searchTracks}
                             icon={<SearchOutlined />}
-                            className="bg-violet-600 hover:bg-violet-500 border-none w-12 h-12 flex items-center justify-center shadow-lg hover:shadow-violet-500/50 transition-all"
+                            className="search-btn bg-violet-600 hover:bg-violet-500 border-none w-12 h-12 flex items-center justify-center shadow-lg hover:shadow-violet-500/50 transition-all"
                         />
                     </form>
+
+                    {/* Sort Dropdown */}
+                    <Select
+                        defaultValue="popularity_total"
+                        style={{ width: 160 }}
+                        onChange={handleSortChange}
+                        className="custom-select"
+                        // Deprecation Fix: dropdownStyle -> styles.popup
+                        popupClassName="bg-neutral-800" // Tailwind class if supported or custom styles
+                        dropdownStyle={{ backgroundColor: '#262626', color: 'white' }} // Keep failover if version mismatch
+                    >
+                        <Option value="popularity_total">Popularity</Option>
+                        <Option value="releasedate">Release Date</Option>
+                        <Option value="name">Name</Option>
+                        <Option value="duration">Duration</Option>
+                    </Select>
                 </div>
 
                 {/* Loading State */}
                 {loading && (
-                    <div className="flex justify-center mt-20">
-                        <Spin size="large" tip="Loading tracks..." />
+                    <div className="flex flex-col justify-center items-center mt-20">
+                        {/* Fix: Spin tip deprecated in non-nested mode */}
+                        <Spin size="large" />
+                        <p className="mt-4 text-gray-400">Loading tracks...</p>
                     </div>
                 )}
 
@@ -86,15 +128,17 @@ const Music = () => {
                 {!loading && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         {tracks.map(track => {
-                            const isPlaying = playingTrack === track.id;
+                            const isCurrentTrack = currentTrack?.id === track.id;
+                            const isTrackPlaying = isCurrentTrack && isPlaying;
 
                             return (
                                 <div
                                     key={track.id}
-                                    className="bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-violet-500/30 flex flex-col"
+                                    className={`bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border ${isCurrentTrack ? 'border-violet-500' : 'border-transparent'} hover:border-violet-500/30 flex flex-col cursor-pointer`}
+                                    onClick={() => playTrack(track)}
                                 >
                                     {/* Image Container */}
-                                    <div className="relative aspect-square w-full group-hover:opacity-100 transition-opacity">
+                                    <div className="relative aspect-square w-full">
                                         {track.album_image ? (
                                             <img
                                                 className="w-full h-full object-cover"
@@ -107,12 +151,13 @@ const Music = () => {
                                             </div>
                                         )}
 
-                                        {/* Play Overlay (appears on hover) */}
-                                        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 ${isPlaying ? 'opacity-100' : ''}`}>
-                                            {/* We don't need a custom button to trigger audio, we use the native controls below, 
-                                                but for visual flair we can show an icon. 
-                                                Actually, let's keep it simple and rely on the native player below the image. 
-                                             */}
+                                        {/* Play Overlay (Visible on Hover or Active) */}
+                                        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300 ${isTrackPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                            {isTrackPlaying ? (
+                                                <PauseCircleFilled className="text-5xl text-violet-500 bg-white rounded-full" />
+                                            ) : (
+                                                <PlayCircleFilled className="text-5xl text-violet-500 bg-white rounded-full" />
+                                            )}
                                         </div>
 
                                         <div className="absolute top-2 right-2">
@@ -120,10 +165,10 @@ const Music = () => {
                                         </div>
                                     </div>
 
-                                    {/* Info & Player */}
+                                    {/* Info */}
                                     <div className="p-5 flex flex-col flex-grow justify-between">
                                         <div className="mb-4">
-                                            <h3 className="font-bold text-lg truncate text-white mb-1" title={track.name}>
+                                            <h3 className={`font-bold text-lg truncate mb-1 ${isCurrentTrack ? 'text-violet-400' : 'text-white'}`} title={track.name}>
                                                 {track.name}
                                             </h3>
                                             <p className="text-gray-400 truncate text-sm font-medium">
@@ -131,24 +176,10 @@ const Music = () => {
                                             </p>
                                         </div>
 
-                                        <div className="mt-auto">
-                                            {track.audio ? (
-                                                <audio
-                                                    controls
-                                                    className="w-full h-8 rounded bg-gray-100"
-                                                    src={track.audio}
-                                                    onPlay={() => setPlayingTrack(track.id)}
-                                                    // Ensure only one track plays at a time (basic logic)
-                                                    onPause={() => setPlayingTrack(null)}
-                                                >
-                                                    Your browser does not support the audio element.
-                                                </audio>
-                                            ) : (
-                                                <div className="flex items-center justify-center bg-neutral-700/50 rounded py-2 text-gray-400 text-sm">
-                                                    <InfoCircleOutlined className="mr-2" />
-                                                    Stream not available
-                                                </div>
-                                            )}
+                                        {/* Basic details */}
+                                        <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
+                                            <span>Duration: {Math.floor(track.duration / 60)}:{('0' + (track.duration % 60)).slice(-2)}</span>
+                                            {isCurrentTrack && <span className="text-violet-500 animate-pulse">Now Playing</span>}
                                         </div>
                                     </div>
                                 </div>

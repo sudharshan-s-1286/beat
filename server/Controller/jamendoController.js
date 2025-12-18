@@ -3,7 +3,7 @@ import axios from 'axios';
 // Search Tracks (proxies to Jamendo API)
 export const searchTracks = async (req, res) => {
     try {
-        const { q } = req.query;
+        const { q, order } = req.query; // Get 'order' param
         if (!q) {
             return res.status(400).json({ message: "Search query is required" });
         }
@@ -16,12 +16,14 @@ export const searchTracks = async (req, res) => {
 
         // Call Jamendo API v3
         // We ask for track name, artist name, album image, and audio stream
+        // 'order' param: popularity_total, releasedate, name, duration, etc.
         const response = await axios.get('https://api.jamendo.com/v3.0/tracks/', {
             params: {
                 client_id: clientId,
                 format: 'json',
                 limit: 20,
                 search: q,
+                order: order || 'popularity_total', // Default to popularity if not provided
                 include: 'musicinfo' // Getting extra info if needed
             }
         });
