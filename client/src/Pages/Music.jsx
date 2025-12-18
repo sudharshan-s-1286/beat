@@ -104,9 +104,9 @@ const Music = () => {
                         style={{ width: 160 }}
                         onChange={handleSortChange}
                         className="custom-select"
-                        // Deprecation Fix: dropdownStyle -> styles.popup
-                        popupClassName="bg-neutral-800" // Tailwind class if supported or custom styles
-                        dropdownStyle={{ backgroundColor: '#262626', color: 'white' }} // Keep failover if version mismatch
+                        // Fixed deprecated props
+                        classNames={{ popup: "bg-neutral-800" }}
+                        styles={{ popup: { backgroundColor: '#262626', color: 'white' } }}
                     >
                         <Option value="popularity_total">Popularity</Option>
                         <Option value="releasedate">Release Date</Option>
