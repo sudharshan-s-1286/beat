@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 
 import connectDb from './Db/db.js'
 import route from './Routes/beatRoutes.js'
-import spotifyRoutes from './Routes/spotifyRoutes.js'
+import jamendoRoutes from './Routes/jamendoRoutes.js'
 
 dotenv.config()
 
@@ -15,7 +15,7 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/api', route)
-app.use('/api/spotify', spotifyRoutes)
+app.use('/api/jamendo', jamendoRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
