@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import { Spin, message, Badge, Button } from 'antd';
 import { PlayCircleFilled, PauseCircleFilled, DeleteOutlined, HeartFilled } from '@ant-design/icons';
 import { PlayerContext } from '../Context/PlayerContext';
@@ -20,13 +20,13 @@ const Favorites = () => {
     const fetchFavorites = async () => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                setLoading(false);
+                return;
+            }
 
-            const { data } = await axios.get('http://localhost:5000/api/playlist', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            console.log("Favorites fetched:", data);
+            // Use axiosInstance - auth header handled automatically
+            const { data } = await axiosInstance.get('/playlist');
             setFavorites(data || []);
         } catch (error) {
             console.error("Error fetching favorites:", error);
@@ -45,10 +45,7 @@ const Favorites = () => {
         setFavorites(favorites.filter(t => t.id !== trackId));
 
         try {
-            const token = localStorage.getItem("token");
-            await axios.delete(`http://localhost:5000/api/playlist/${trackId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axiosInstance.delete(`/playlist/${trackId}`);
             message.success("Removed from favorites");
         } catch (error) {
             console.error("Remove Error:", error);
@@ -65,7 +62,7 @@ const Favorites = () => {
                     <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-2">
                         Your Favorites
                     </h1>
-                    <p className="text-green-500 text-lg">Your personal collection of top tracks</p>
+                    <p className="text-red-500 text-lg">Your personal collection of top tracks</p>
                 </header>
 
                 {/* Loading State */}
@@ -86,7 +83,7 @@ const Favorites = () => {
                             return (
                                 <div
                                     key={track.id}
-                                    className={`bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border ${isCurrentTrack ? 'border-green-500' : 'border-transparent'} hover:border-green-500/30 flex flex-col cursor-pointer relative`}
+                                    className={`bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border ${isCurrentTrack ? 'border-red-500' : 'border-transparent'} hover:border-red-500/30 flex flex-col cursor-pointer relative`}
                                     onClick={() => playTrack(track)}
                                 >
                                     {/* Image Container */}
@@ -106,14 +103,14 @@ const Favorites = () => {
                                         {/* Play Overlay */}
                                         <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300 ${isTrackPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                             {isTrackPlaying ? (
-                                                <PauseCircleFilled className="text-5xl text-green-500 bg-white rounded-full" />
+                                                <PauseCircleFilled className="text-5xl text-red-600 bg-white rounded-full" />
                                             ) : (
-                                                <PlayCircleFilled className="text-5xl text-green-500 bg-white rounded-full" />
+                                                <PlayCircleFilled className="text-5xl text-red-600 bg-white rounded-full" />
                                             )}
                                         </div>
 
                                         <div className="absolute top-2 right-2">
-                                            <Badge count={<HeartFilled style={{ color: '#1db954' }} />} style={{ backgroundColor: 'transparent' }} />
+                                            <Badge count={<HeartFilled style={{ color: '#dc2626' }} />} style={{ backgroundColor: 'transparent' }} />
                                         </div>
                                     </div>
 
@@ -121,7 +118,7 @@ const Favorites = () => {
                                     <div className="p-5 flex flex-col flex-grow justify-between">
                                         <div className="mb-4">
                                             <div className="flex justify-between items-start">
-                                                <h3 className={`font-bold text-lg truncate mb-1 flex-1 ${isCurrentTrack ? 'text-green-400' : 'text-white'}`} title={track.name}>
+                                                <h3 className={`font-bold text-lg truncate mb-1 flex-1 ${isCurrentTrack ? 'text-red-500' : 'text-white'}`} title={track.name}>
                                                     {track.name}
                                                 </h3>
 
@@ -142,7 +139,7 @@ const Favorites = () => {
                                         {/* Basic details */}
                                         <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
                                             <span>Duration: {Math.floor(track.duration / 60)}:{('0' + (track.duration % 60)).slice(-2)}</span>
-                                            {isCurrentTrack && <span className="text-green-500 animate-pulse">Now Playing</span>}
+                                            {isCurrentTrack && <span className="text-red-500 animate-pulse">Now Playing</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -160,7 +157,7 @@ const Favorites = () => {
                         <h2 className="text-2xl font-bold mb-2">No favorites yet</h2>
                         <p className="text-gray-400 mb-6">Start listening and like songs to save them here.</p>
                         <Link to="/music">
-                            <Button type="primary" size="large" className="bg-green-600 hover:bg-green-500 border-none h-12 px-8 rounded-full font-bold">
+                            <Button type="primary" size="large" className="bg-red-600 hover:bg-red-500 border-none h-12 px-8 rounded-full font-bold">
                                 Find Music
                             </Button>
                         </Link>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../api/axiosInstance";
 
 const SignUp = ({ setIsAuth }) => {
   const [name, setName] = useState("");
@@ -10,37 +10,30 @@ const SignUp = ({ setIsAuth }) => {
   const navigate = useNavigate();
 
   const register = async () => {
-    console.log("Attempting signup for:", email);
     try {
-      const res = await axios.post("http://localhost:5000/api/signup", {
+      const res = await axiosInstance.post("/signup", {
         name,
         email,
         password,
       });
 
-      console.log("Signup Response:", res.data);
-
       if (res.data.jwt) {
         localStorage.setItem("token", res.data.jwt);
-        console.log("Token stored in localStorage:", res.data.jwt);
-        setIsAuth(true); // Update global state
+        setIsAuth(true);
         message.success("Signup successful! Redirecting...");
 
         setName("");
         setEmail("");
         setPassword("");
 
-        // Redirect directly to music page for better UX
-        navigate("/music");
+        navigate("/music", { replace: true });
       } else {
-        console.warn("No token received in signup response");
         message.success("Signup successful. Please sign in.");
         setTimeout(() => navigate("/signin"), 1500);
       }
 
     } catch (err) {
       console.error("Signup Error:", err);
-      // specific error handling from backend
       if (err.response && err.response.data && err.response.data.error) {
         message.error(err.response.data.error);
       } else if (err.response && err.response.data && err.response.data.message) {
@@ -56,7 +49,7 @@ const SignUp = ({ setIsAuth }) => {
       <div className="w-125 p-8 rounded-xl bg-black/70 hover:bg-black/80 hover:shadow-2xl transition-all border border-neutral-800">
 
         {/* Heading */}
-        <h2 className="text-4xl text-center font-extrabold text-white mb-8 hover:text-green-500 transition">
+        <h2 className="text-4xl text-center font-extrabold text-white mb-8 hover:text-red-500 transition">
           Sign Up
         </h2>
 
@@ -64,19 +57,19 @@ const SignUp = ({ setIsAuth }) => {
         <Form layout="vertical" onFinish={register} autoComplete="off">
           <Form.Item
             label={
-              <span className="text-white hover:text-green-500 transition">
+              <span className="text-white hover:text-red-500 transition">
                 Name
               </span>
             }
             name="name"
             rules={[{ required: true, message: "Please input your name!" }]}
           >
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="hover:border-green-500 focus:border-green-500" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="hover:border-red-500 focus:border-red-500" />
           </Form.Item>
 
           <Form.Item
             label={
-              <span className="text-white hover:text-green-500 transition">
+              <span className="text-white hover:text-red-500 transition">
                 Email
               </span>
             }
@@ -86,12 +79,12 @@ const SignUp = ({ setIsAuth }) => {
               { type: "email", message: "Enter a valid email!" },
             ]}
           >
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} className="hover:border-green-500 focus:border-green-500" />
+            <Input value={email} onChange={(e) => setEmail(e.target.value)} className="hover:border-red-500 focus:border-red-500" />
           </Form.Item>
 
           <Form.Item
             label={
-              <span className="text-white hover:text-green-500 transition">
+              <span className="text-white hover:text-red-500 transition">
                 Password
               </span>
             }
@@ -101,7 +94,7 @@ const SignUp = ({ setIsAuth }) => {
             <Input.Password
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="hover:border-green-500 focus:border-green-500"
+              className="hover:border-red-500 focus:border-red-500"
             />
           </Form.Item>
 
@@ -109,7 +102,7 @@ const SignUp = ({ setIsAuth }) => {
           <Form.Item>
             <Checkbox
               style={{ color: "white" }}
-              className="hover:text-green-500 transition"
+              className="hover:text-red-500 transition"
             >
               Remember me
             </Checkbox>
@@ -121,8 +114,8 @@ const SignUp = ({ setIsAuth }) => {
               block
               size="large"
               htmlType="submit"
-              className="bg-green-600 hover:bg-green-500 border-none text-white font-bold"
-              style={{ backgroundColor: "#1db954", color: "white" }}
+              className="bg-red-600 hover:bg-red-500 border-none text-white font-bold"
+              style={{ backgroundColor: "#dc2626", color: "white" }}
             >
               Sign Up
             </Button>
@@ -134,7 +127,7 @@ const SignUp = ({ setIsAuth }) => {
           Already have an account?{" "}
           <Link
             to="/signin"
-            className="underline hover:text-green-500 transition"
+            className="underline hover:text-red-500 transition"
           >
             Sign In
           </Link>

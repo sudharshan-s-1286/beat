@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { PlayerContext } from '../Context/PlayerContext';
-import { PlayCircleFilled, PauseCircleFilled, StepBackwardOutlined, StepForwardOutlined, SoundOutlined, MutedOutlined } from '@ant-design/icons';
+import { PlayCircleFilled, PauseCircleFilled, StepBackwardOutlined, StepForwardOutlined, SoundOutlined } from '@ant-design/icons';
 import { Slider } from 'antd';
 
 const BottomPlayer = () => {
@@ -44,12 +44,10 @@ const BottomPlayer = () => {
         return `${min}:${sec < 10 ? '0' + sec : sec}`;
     };
 
-    // If no track is selected, don't render anything
-    // CRITICAL FIX: This return statement must be AFTER all hooks
     if (!currentTrack) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-neutral-900 border-t border-neutral-800 p-4 h-24 flex items-center justify-between z-50 text-white backdrop-blur-lg bg-opacity-95">
+        <div className="fixed bottom-0 left-0 right-0 bg-black/95 border-t border-neutral-800 p-4 h-24 flex items-center justify-between z-50 text-white backdrop-blur-lg">
             {/* Hidden Audio Element */}
             <audio
                 ref={audioRef}
@@ -62,12 +60,12 @@ const BottomPlayer = () => {
             {/* Track Info */}
             <div className="flex items-center w-1/3 min-w-[200px]">
                 {currentTrack.album_image ? (
-                    <img src={currentTrack.album_image} alt="Album" className="h-14 w-14 rounded object-cover shadow-lg" />
+                    <img src={currentTrack.album_image} alt="Album" className="h-14 w-14 rounded object-cover shadow-lg border border-neutral-700" />
                 ) : (
                     <div className="h-14 w-14 bg-neutral-800 rounded flex items-center justify-center text-xs text-gray-500">No IMG</div>
                 )}
                 <div className="ml-4 truncate">
-                    <h4 className="text-sm font-bold truncate hover:underline cursor-pointer">{currentTrack.name}</h4>
+                    <h4 className="text-sm font-bold truncate hover:text-red-500 cursor-pointer transition-colors">{currentTrack.name}</h4>
                     <p className="text-xs text-gray-400 hover:text-white cursor-pointer transition-colors">{currentTrack.artist_name}</p>
                 </div>
             </div>
@@ -75,17 +73,17 @@ const BottomPlayer = () => {
             {/* Player Controls (Center) */}
             <div className="flex flex-col items-center w-1/3">
                 <div className="flex items-center space-x-6 mb-2">
-                    <StepBackwardOutlined className="text-xl text-gray-400 hover:text-white cursor-pointer transition-colors" />
+                    <StepBackwardOutlined className="text-xl text-gray-400 hover:text-red-500 cursor-pointer transition-colors" />
 
                     <button onClick={togglePlay} className="transform hover:scale-110 transition-transform">
                         {isPlaying ? (
-                            <PauseCircleFilled className="text-4xl text-white" />
+                            <PauseCircleFilled className="text-4xl text-red-600 bg-white rounded-full bg-opacity-10" />
                         ) : (
-                            <PlayCircleFilled className="text-4xl text-white" />
+                            <PlayCircleFilled className="text-4xl text-red-600 bg-white rounded-full bg-opacity-10" />
                         )}
                     </button>
 
-                    <StepForwardOutlined className="text-xl text-gray-400 hover:text-white cursor-pointer transition-colors" />
+                    <StepForwardOutlined className="text-xl text-gray-400 hover:text-red-500 cursor-pointer transition-colors" />
                 </div>
 
                 {/* Progress Bar */}
@@ -97,8 +95,8 @@ const BottomPlayer = () => {
                             max={duration}
                             onChange={handleSeek}
                             tooltip={{ formatter: null }}
-                            trackStyle={{ backgroundColor: '#1db954' }}
-                            handleStyle={{ borderColor: '#1db954', backgroundColor: '#fff' }}
+                            trackStyle={{ backgroundColor: '#dc2626' }}
+                            handleStyle={{ borderColor: '#dc2626', backgroundColor: '#fff' }}
                             railStyle={{ backgroundColor: '#404040' }}
                         />
                     </div>
@@ -116,8 +114,8 @@ const BottomPlayer = () => {
                         max={1}
                         step={0.01}
                         onChange={setVolume}
-                        trackStyle={{ backgroundColor: '#1db954' }}
-                        handleStyle={{ borderColor: '#1db954', backgroundColor: '#fff' }}
+                        trackStyle={{ backgroundColor: '#dc2626' }}
+                        handleStyle={{ borderColor: '#dc2626', backgroundColor: '#fff' }}
                         railStyle={{ backgroundColor: '#404040' }}
                     />
                 </div>

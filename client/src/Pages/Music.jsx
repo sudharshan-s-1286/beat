@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import { Button, Input, Spin, message, Badge, Select } from 'antd';
 import { SearchOutlined, PlayCircleFilled, PauseCircleFilled, HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { PlayerContext } from '../Context/PlayerContext';
@@ -10,9 +10,9 @@ const Music = () => {
     const [searchKey, setSearchKey] = useState('');
     const [tracks, setTracks] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [sortBy, setSortBy] = useState('popularity_total'); // Default sort
-    const [favoriteIds, setFavoriteIds] = useState(new Set()); // Store IDs of favorite tracks
-    const [loadingFavoriteId, setLoadingFavoriteId] = useState(null); // Track ID currently being added
+    const [sortBy, setSortBy] = useState('popularity_total');
+    const [favoriteIds, setFavoriteIds] = useState(new Set());
+    const [loadingFavoriteId, setLoadingFavoriteId] = useState(null);
 
     // Global Player Context
     const { playTrack, currentTrack, isPlaying } = useContext(PlayerContext);
@@ -20,15 +20,11 @@ const Music = () => {
     // Fetch User Favorites on Mount
     useEffect(() => {
         const fetchFavorites = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
             try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
-
-                const { data } = await axios.get('http://localhost:5000/api/playlist', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                // Set initial favorites
+                const { data } = await axiosInstance.get('/playlist');
                 const ids = new Set(data.map(t => t.id));
                 setFavoriteIds(ids);
             } catch (error) {
@@ -49,8 +45,7 @@ const Music = () => {
 
         setLoading(true);
         try {
-            // Call our backend proxy
-            const { data } = await axios.get('http://localhost:5000/api/jamendo/search', {
+            const { data } = await axiosInstance.get('/jamendo/search', {
                 params: {
                     q: searchKey,
                     order: sortBy
@@ -71,7 +66,7 @@ const Music = () => {
 
     // Add to Favorites Handler
     const addToFavorites = async (e, track) => {
-        e.stopPropagation(); // Prevent triggering play
+        e.stopPropagation();
 
         if (favoriteIds.has(track.id)) {
             message.warning("Song already in favorites");
@@ -80,17 +75,7 @@ const Music = () => {
 
         setLoadingFavoriteId(track.id);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                message.error("Please sign in to add favorites");
-                return;
-            }
-
-            await axios.post('http://localhost:5000/api/playlist/add', { track }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            // Update local state
+            await axiosInstance.post('/playlist/add', { track });
             setFavoriteIds(prev => new Set(prev).add(track.id));
             message.success("Added to favorites ❤️");
 
@@ -102,7 +87,6 @@ const Music = () => {
         }
     };
 
-    // Triggered when sort option changes
     const handleSortChange = (value) => {
         setSortBy(value);
         if (searchKey.trim()) {
@@ -114,7 +98,7 @@ const Music = () => {
         <div className="min-h-screen bg-neutral-900 text-white p-4 md:p-10 font-sans pb-32">
             <div className="max-w-7xl mx-auto">
                 <header className="mb-10 text-center">
-                    <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 mb-4 animate-pulse">
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 mb-4 animate-pulse">
                         BEAT Music
                     </h1>
                     <p className="text-gray-400 text-lg">Stream full songs powered by Jamendo</p>
@@ -138,7 +122,7 @@ const Music = () => {
                             shape="circle"
                             onClick={searchTracks}
                             icon={<SearchOutlined />}
-                            className="search-btn bg-green-600 hover:bg-green-500 border-none w-12 h-12 flex items-center justify-center shadow-lg hover:shadow-green-500/50 transition-all"
+                            className="search-btn bg-red-600 hover:bg-red-500 border-none w-12 h-12 flex items-center justify-center shadow-lg hover:shadow-red-500/50 transition-all"
                         />
                     </form>
 
@@ -178,7 +162,7 @@ const Music = () => {
                             return (
                                 <div
                                     key={track.id}
-                                    className={`bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border ${isCurrentTrack ? 'border-green-500' : 'border-transparent'} hover:border-green-500/30 flex flex-col cursor-pointer relative`}
+                                    className={`bg-neutral-800/50 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-neutral-800 transition-all duration-300 group hover:-translate-y-2 hover:shadow-2xl border ${isCurrentTrack ? 'border-red-600' : 'border-transparent'} hover:border-red-600/30 flex flex-col cursor-pointer relative`}
                                     onClick={() => playTrack(track)}
                                 >
                                     {/* Image Container */}
@@ -198,14 +182,14 @@ const Music = () => {
                                         {/* Play Overlay */}
                                         <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300 ${isTrackPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                             {isTrackPlaying ? (
-                                                <PauseCircleFilled className="text-5xl text-green-500 bg-white rounded-full" />
+                                                <PauseCircleFilled className="text-5xl text-red-600 bg-white rounded-full" />
                                             ) : (
-                                                <PlayCircleFilled className="text-5xl text-green-500 bg-white rounded-full" />
+                                                <PlayCircleFilled className="text-5xl text-red-600 bg-white rounded-full" />
                                             )}
                                         </div>
 
                                         <div className="absolute top-2 right-2 flex gap-2">
-                                            <Badge count="Full Song" style={{ backgroundColor: '#1db954' }} />
+                                            <Badge count="Full Song" style={{ backgroundColor: '#dc2626' }} />
                                         </div>
                                     </div>
 
@@ -213,7 +197,7 @@ const Music = () => {
                                     <div className="p-5 flex flex-col flex-grow justify-between">
                                         <div className="mb-4">
                                             <div className="flex justify-between items-start">
-                                                <h3 className={`font-bold text-lg truncate mb-1 flex-1 ${isCurrentTrack ? 'text-green-400' : 'text-white'}`} title={track.name}>
+                                                <h3 className={`font-bold text-lg truncate mb-1 flex-1 ${isCurrentTrack ? 'text-red-500' : 'text-white'}`} title={track.name}>
                                                     {track.name}
                                                 </h3>
 
@@ -221,12 +205,12 @@ const Music = () => {
                                                 <button
                                                     onClick={(e) => addToFavorites(e, track)}
                                                     disabled={isFavorite || isAdding}
-                                                    className={`ml-2 transform hover:scale-110 transition-transform ${isFavorite ? 'cursor-default' : 'cursor-pointer hover:text-green-500'}`}
+                                                    className={`ml-2 transform hover:scale-110 transition-transform ${isFavorite ? 'cursor-default' : 'cursor-pointer hover:text-red-500'}`}
                                                 >
                                                     {isAdding ? (
                                                         <Spin size="small" />
                                                     ) : isFavorite ? (
-                                                        <HeartFilled className="text-green-500 text-xl" />
+                                                        <HeartFilled className="text-red-500 text-xl" />
                                                     ) : (
                                                         <HeartOutlined className="text-gray-400 hover:text-white text-xl" />
                                                     )}
@@ -241,7 +225,7 @@ const Music = () => {
                                         {/* Basic details */}
                                         <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
                                             <span>Duration: {Math.floor(track.duration / 60)}:{('0' + (track.duration % 60)).slice(-2)}</span>
-                                            {isCurrentTrack && <span className="text-green-500 animate-pulse">Now Playing</span>}
+                                            {isCurrentTrack && <span className="text-red-500 animate-pulse">Now Playing</span>}
                                         </div>
                                     </div>
                                 </div>

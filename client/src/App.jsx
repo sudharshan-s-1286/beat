@@ -1,16 +1,15 @@
-import React, { useContext, useState, useEffect } from 'react'
-import Header from './Components/Header'
-import Footer from './Components/Footer'
-import Home from './Pages/Home'
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import SignIn from './Pages/SignIn'
-import SignUp from './Pages/SignUp'
-import About from './Pages/About'
-import Dashboard from './Dashboard/Dashboard'
-import Music from './Pages/Music'
-import Favorites from './Pages/Favorites' // Import Favorites
-import { PlayerProvider, PlayerContext } from './Context/PlayerContext'
-import BottomPlayer from './Components/BottomPlayer'
+import React, { useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Header from './Components/Header';
+import Home from './Pages/Home';
+import About from './Pages/About';
+import Contact from './Pages/Contact';
+import SignIn from './Pages/SignIn';
+import SignUp from './Pages/SignUp';
+import Music from './Pages/Music';
+import Favorites from './Pages/Favorites';
+import BottomPlayer from './Components/BottomPlayer';
+import { PlayerProvider } from './Context/PlayerContext';
 
 // Protected Route Component
 const ProtectedRoute = ({ isAuth, children }) => {
@@ -20,28 +19,52 @@ const ProtectedRoute = ({ isAuth, children }) => {
   return children;
 };
 
-const Layout = ({ isAuth, setIsAuth }) => { // Accept props
+// Authenticated Route Component (redirects to /music if already logged in)
+const PublicOnlyRoute = ({ isAuth, children }) => {
+  if (isAuth) {
+    return <Navigate to="/music" replace />;
+  }
+  return children;
+};
+
+const App = () => {
+  // Initialize state from local storage securely
+  const [isAuth, setIsAuth] = useState(!!localStorage.getItem("token"));
   const location = useLocation();
-  const hide = ['/signin', '/signup', '/dashboard'];
-  const hideLayout = hide.includes(location.pathname);
+
+  // Hide Player on Auth Pages
+  const hidePlayerRoutes = ['/signin', '/signup'];
+  const showPlayer = isAuth && !hidePlayerRoutes.includes(location.pathname);
 
   return (
-    <>
-      {!hideLayout && <Header isAuth={isAuth} setIsAuth={setIsAuth} />}
-      <div className={!hideLayout ? "pb-28" : ""}>
+    <PlayerProvider>
+      <div className="min-h-screen bg-black text-white font-sans">
+        <Header isAuth={isAuth} setIsAuth={setIsAuth} />
+
         <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/about' element={<About />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
 
-          {/* Prevent authenticated users from seeing signin/signup */}
-          <Route path='/signin' element={isAuth ? <Navigate to="/music" /> : <SignIn setIsAuth={setIsAuth} />} />
-          <Route path='/signup' element={isAuth ? <Navigate to="/music" /> : <SignUp setIsAuth={setIsAuth} />} />
-
-          <Route path='/dashboard' element={<Dashboard />} />
-
-          {/* Protected Routes */}
           <Route
-            path='/music'
+            path="/signin"
+            element={
+              <PublicOnlyRoute isAuth={isAuth}>
+                <SignIn setIsAuth={setIsAuth} />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicOnlyRoute isAuth={isAuth}>
+                <SignUp setIsAuth={setIsAuth} />
+              </PublicOnlyRoute>
+            }
+          />
+
+          <Route
+            path="/music"
             element={
               <ProtectedRoute isAuth={isAuth}>
                 <Music />
@@ -49,7 +72,7 @@ const Layout = ({ isAuth, setIsAuth }) => { // Accept props
             }
           />
           <Route
-            path='/favorites'
+            path="/favorites"
             element={
               <ProtectedRoute isAuth={isAuth}>
                 <Favorites />
@@ -57,25 +80,11 @@ const Layout = ({ isAuth, setIsAuth }) => { // Accept props
             }
           />
         </Routes>
+
+        {showPlayer && <BottomPlayer />}
       </div>
-      {/* Show BottomPlayer only if authenticated and not in hidden layout */}
-      {!hideLayout && isAuth && <BottomPlayer />}
-      {!hideLayout && <Footer />}
-    </>
-  )
-}
-
-const App = () => {
-  // Global Auth State
-  const [isAuth, setIsAuth] = useState(!!localStorage.getItem("token"));
-
-  return (
-    <PlayerProvider>
-      <Router>
-        <Layout isAuth={isAuth} setIsAuth={setIsAuth} />
-      </Router>
     </PlayerProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;
