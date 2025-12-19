@@ -3,7 +3,7 @@ import { Button, Checkbox, Form, Input, message } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-const SignUp = () => {
+const SignUp = ({ setIsAuth }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +23,7 @@ const SignUp = () => {
       if (res.data.jwt) {
         localStorage.setItem("token", res.data.jwt);
         console.log("Token stored in localStorage:", res.data.jwt);
+        setIsAuth(true); // Update global state
         message.success("Signup successful! Redirecting...");
 
         setName("");
@@ -30,7 +31,7 @@ const SignUp = () => {
         setPassword("");
 
         // Redirect directly to music page for better UX
-        setTimeout(() => navigate("/music"), 1500);
+        navigate("/music");
       } else {
         console.warn("No token received in signup response");
         message.success("Signup successful. Please sign in.");

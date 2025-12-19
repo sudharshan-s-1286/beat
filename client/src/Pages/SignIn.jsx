@@ -3,7 +3,7 @@ import { Button, Checkbox, Form, Input, message } from "antd";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-const SignIn = () => {
+const SignIn = ({ setIsAuth }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -21,12 +21,13 @@ const SignIn = () => {
       if (res.data.jwt) {
         localStorage.setItem("token", res.data.jwt);
         console.log("Token stored in localStorage:", res.data.jwt);
+        setIsAuth(true); // Update global state
         message.success("Login successful");
         setEmail("");
         setPassword("");
 
-        // Short delay to ensure localstorage is set before navigation
-        setTimeout(() => navigate("/music"), 1000);
+        // Immediate redirect
+        navigate("/music");
       } else {
         console.warn("No token received in response");
         message.error("Login failed: No token received");
