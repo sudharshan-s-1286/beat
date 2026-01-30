@@ -44,30 +44,32 @@ const Header = ({ isAuth, setIsAuth }) => {
 
       {/* Auth Buttons */}
       <div className="flex items-center gap-4">
-        <Link to="/signin">
-          <Button
-            type="primary"
-            variant="outlined"
-            className="signin-btn font-bold px-6 py-2 rounded-full border-2 transition-all h-10 flex items-center"
-            style={{
-              backgroundColor: 'transparent',
-              color: 'white',
-              borderColor: 'white'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'red';
-              e.currentTarget.style.color = 'black';
-              e.currentTarget.style.borderColor = 'red';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'white';
-              e.currentTarget.style.borderColor = 'white';
-            }}
-          >
-            Sign in
-          </Button>
-        </Link>
+        {!isAuth && (
+          <Link to="/signin">
+            <Button
+              type="primary"
+              variant="outlined"
+              className="signin-btn font-bold px-6 py-2 rounded-full border-2 transition-all h-10 flex items-center"
+              style={{
+                backgroundColor: 'transparent',
+                color: 'white',
+                borderColor: 'white'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = 'red';
+                e.currentTarget.style.color = 'black';
+                e.currentTarget.style.borderColor = 'red';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.borderColor = 'white';
+              }}
+            >
+              Sign in
+            </Button>
+          </Link>
+        )}
 
         {isAuth ? (
           <Button

@@ -7,8 +7,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const generateToken = (id) => {
+    if (!process.env.JSON_WEB) {
+        console.error("❌ JSON_WEB secret is missing in .env!");
+        throw new Error("Server configuration error: JWT secret is missing");
+    }
     return jwt.sign(
-        { id },
+        { id: id.toString() },
         process.env.JSON_WEB,
         { expiresIn: "7d" }
     )
@@ -16,13 +20,16 @@ const generateToken = (id) => {
 
 export const signUp = async (req, res) => {
     const { name, email, password } = req.body;
+    console.log("Signup attempt for:", email);
     try {
         let user = await userCollection.findOne({ email });
         if (user) {
+            console.log("User already exists:", email);
             return res.status(400).json({ error: "User already exists" });
         }
 
-        const salt = await bcrypt.genSalt(15);
+        console.log("Hashing password...");
+        const salt = await bcrypt.genSalt(10); // Reduced rounds for testing/speed
         const hashedPassword = await bcrypt.hash(password, salt);
 
         user = new userCollection({
@@ -31,18 +38,27 @@ export const signUp = async (req, res) => {
             password: hashedPassword,
         });
 
+        console.log("Saving user to database...");
         await user.save();
+
+        console.log("User saved, generating token...");
+        const token = generateToken(user._id);
+
         res.json({
             _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role,
-            jwt: generateToken(user._id),
+            jwt: token,
             message: "User created successfully"
         })
     } catch (err) {
-        console.error("SignUp Error:", err);
-        res.status(500).json({ message: "Server error during registration", error: err.message })
+        console.error("SignUp Detailed Error:", err);
+        res.status(500).json({
+            message: "Server error during registration",
+            error: err.message,
+            stack: err.stack
+        })
     }
 }
 
