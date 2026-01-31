@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'motion/react';
 import { CustomerServiceFilled, TrophyFilled, SafetyCertificateFilled, GlobalOutlined } from '@ant-design/icons';
@@ -123,8 +124,8 @@ const About = () => {
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${tx.status === 'completed' ? 'bg-green-500/10 text-green-500' :
-                            tx.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
-                              'bg-red-500/10 text-red-500'
+                          tx.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                            'bg-red-500/10 text-red-500'
                           }`}>
                           $
                         </div>
@@ -136,8 +137,8 @@ const About = () => {
                       <div className="text-right">
                         <p className="font-mono font-bold text-lg">${tx.amount.toFixed(2)}</p>
                         <p className={`text-[10px] font-bold uppercase tracking-wider ${tx.status === 'completed' ? 'text-green-500' :
-                            tx.status === 'pending' ? 'text-yellow-500' :
-                              'text-red-500'
+                          tx.status === 'pending' ? 'text-yellow-500' :
+                            'text-red-500'
                           }`}>{tx.status}</p>
                       </div>
                     </motion.div>
@@ -151,9 +152,11 @@ const About = () => {
               <div className="text-center p-8">
                 <h3 className="text-2xl font-bold mb-4">Join the Movement</h3>
                 <p className="text-neutral-400 mb-6">Sign in to view your personalized dashboard and transaction history.</p>
-                <div className="w-16 h-16 mx-auto bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-110 transition-transform">
-                  <CustomerServiceFilled className="text-3xl text-white" />
-                </div>
+                <Link to="/signin" className="inline-block">
+                  <div className="w-16 h-16 mx-auto bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-110 transition-transform cursor-pointer">
+                    <CustomerServiceFilled className="text-3xl text-white" />
+                  </div>
+                </Link>
               </div>
             </div>
           )}
