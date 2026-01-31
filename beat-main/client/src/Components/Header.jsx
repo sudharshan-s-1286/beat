@@ -32,6 +32,7 @@ const Header = ({ isAuth, setIsAuth }) => {
             <Link to="/" className={linkClasses('/')}>Home</Link>
             <Link to="/music" className={linkClasses('/music')}>Music</Link>
             <Link to="/favorites" className={linkClasses('/favorites')}>Favorites</Link>
+            <Link to="/about" className={linkClasses('/about')}>About</Link>
           </>
         ) : (
           <>

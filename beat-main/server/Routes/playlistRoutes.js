@@ -1,5 +1,5 @@
 import express from 'express';
-import Playlist from '../Models/Playlist.js';
+import Playlist from '../Model/Playlist.js';
 import { authenticate } from '../Middleware/middleware.js'; // Assuming you have auth middleware
 
 const router = express.Router();
