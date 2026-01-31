@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { motion } from 'motion/react';
 
 const About = () => {
   const [transactions, setTransactions] = useState([]);
@@ -31,12 +32,41 @@ const About = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-4xl mx-auto mt-10">
-        <h1 className="text-5xl font-bold mb-8 text-center">About</h1>
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
 
-        <div className="space-y-6 text-lg leading-relaxed">
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
+  return (
+    <motion.div
+      className="min-h-screen bg-black text-white p-8"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <div className="max-w-4xl mx-auto mt-10">
+        <motion.h1
+          className="text-5xl font-bold mb-8 text-center"
+          variants={itemVariants}
+        >
+          About
+        </motion.h1>
+
+        <motion.div className="space-y-6 text-lg leading-relaxed" variants={itemVariants}>
           <p>
             Beat is a modern music streaming web application designed to provide an immersive and seamless listening experience for music enthusiasts. The platform allows users to explore a wide range of tracks, stream audio in real time, and manage their music preferences through an intuitive and visually clean interface.
           </p>
@@ -46,7 +76,10 @@ const About = () => {
           </p>
 
           {isAuth && (
-            <div className="mt-12 bg-neutral-900 p-6 rounded-lg shadow-lg">
+            <motion.div
+              className="mt-12 bg-neutral-900 p-6 rounded-lg shadow-lg"
+              variants={itemVariants}
+            >
               <h2 className="text-3xl font-semibold mb-6 border-b border-gray-700 pb-2">Your Transactions</h2>
 
               {loading ? (
@@ -67,8 +100,14 @@ const About = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((tx) => (
-                        <tr key={tx._id} className="border-b border-gray-800 hover:bg-neutral-800 transition">
+                      {transactions.map((tx, index) => (
+                        <motion.tr
+                          key={tx._id}
+                          className="border-b border-gray-800 hover:bg-neutral-800 transition"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
                           <td className="py-3 px-4">{new Date(tx.date).toLocaleDateString()}</td>
                           <td className="py-3 px-4">{tx.description}</td>
                           <td className="py-3 px-4 font-mono">${tx.amount.toFixed(2)}</td>
@@ -80,16 +119,16 @@ const About = () => {
                               {tx.status}
                             </span>
                           </td>
-                        </tr>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
-          <div className="mt-12">
+          <motion.div className="mt-12" variants={itemVariants}>
             <h2 className="text-3xl font-semibold mb-4">Key Features</h2>
             <ul className="list-disc list-inside space-y-2">
               <li>Real-time music streaming</li>
@@ -99,10 +138,10 @@ const About = () => {
               <li>Secure user authentication</li>
               <li>Clean, intuitive interface</li>
             </ul>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
